@@ -28,7 +28,10 @@ This Jupyter notebook contains the code that generated 32,000 repeats of the par
 ## 3. False positive rate
 
 #### 3.1 Calculating false positive rate (1000 permutations).ipynb
-This Jupyter notebook contains code that calculates the false positive rate of each case/experiment combination for cases 1 and 2 
+This Jupyter notebook contains code that calculates the false positive rate of each case/experiment combination for cases 1 and 2.
+
+#### 3.2 False positive rate calculation table.pdf
+This image is a table that contains the false positive rate calculations for each case/experiment combination for cases 1 and 2. It also contains the a table with the corresponding probabilities of observing estimated false positive rates at least this large, when the true false positive rate is 0.05.
 
 ## 4. False negative rate
 
