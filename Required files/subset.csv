@@ -1,0 +1,9 @@
+,Everything,Telencephalon_L_501_5,CerebralCortex_L_482_4,Limbic_L_434_3,Hippo_L_338_2,Amyg_L_336_2,Hippo_L_75_1,Amyg_L_73_1
+Everything,0,1,0,0,0,0,0,0
+Telencephalon_L_501_5,0,0,1,0,0,0,0,0
+CerebralCortex_L_482_4,0,0,0,1,0,0,0,0
+Limbic_L_434_3,0,0,0,0,1,1,0,0
+Hippo_L_338_2,0,0,0,0,0,0,1,0
+Amyg_L_336_2,0,0,0,0,0,0,0,1
+Hippo_L_75_1,0,0,0,0,0,0,0,0
+Amyg_L_73_1,0,0,0,0,0,0,0,0
