@@ -8,3 +8,6 @@ This Jupyter notebook contains the code that generated 32,000 repeats of the par
 
 ### Calculating false positive rate (1000 permutations).ipynb
 This Jupyter notebook contains code that calculates the false positive rate of each case/experiment combination for cases 1 and 2 
+
+### Calculating false negative rate (1000 permutations).ipynb
+This Jupyter notebook contains code that calculates the false negative rate of each case/experiment combination for cases 2, 3, and 4
