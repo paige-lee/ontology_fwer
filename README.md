@@ -8,9 +8,11 @@ The original file of 289 structures. This is the raw data.
 #### 1.2 multilevel2.csv
 This file contains each of the 509 unique structures and the immediate parent and immediate child/children of each.
 
-#### 1.3 adjacency_matrix.csv
+#### 1.3 adjacency_matrix2.csv
+This file contains the adjacency matrix for all 509 unique structures, where 1 indicates that  
 
 #### 1.4 subset.csv
+This file contains the adjacency matrix for the eight subset structures, where 1 indicates 
 
 ## 2. Creating ontology and subset
 
