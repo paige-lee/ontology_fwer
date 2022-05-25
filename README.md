@@ -2,11 +2,13 @@
 
 ## 1. Required files
 
-#### 1.1
+#### 1.1  multilevel_lookup_table.txt
+The original file of 289 structures. 
 
-#### 1.2
+#### 1.2 multilevel.csv
 
-#### 1.3 
+
+#### 1.3 adjacency_matrix.csv
 
 ## 2. Creating ontology and subset
 
