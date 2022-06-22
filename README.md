@@ -40,3 +40,8 @@ This Jupyter notebook contains code that calculates the false negative rate of e
 
 #### 4.2 False negative rate calculation table.pdf
 This file contains tables that present the false negative rates for all relevant structures in each case/experiment combination for cases 2, 3, and 4.
+
+## 5. Defining functions
+
+#### 5.1 Function definitions.ipynb
+This Jupyter notebook contains all code for the items in sections 2, 3, and 4, where all code is compiled into functions.
