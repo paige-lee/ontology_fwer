@@ -45,3 +45,12 @@ This file contains tables that present the false negative rates for all relevant
 
 #### 5.1 Function definitions.ipynb
 This Jupyter notebook contains all code for the items in sections 2, 3, and 4, where all code is compiled into functions.
+
+#### 5.2 functions_py_file.ipynb
+This Jupyter notebook contains all of the defined functions with appropriate Sphinx style documentation.
+
+#### 5.3 functions_py_file.py
+This .py file was converted from the functions_py_file.ipynb Jupyter notebook so that functions could be easily loaded.
+
+#### 5.4 Testing functions.ipynb
+This Jupyter notebook contains a fake test and a real test of the functions from the .py file to make sure everything works properly.
