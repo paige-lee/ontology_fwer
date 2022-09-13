@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[3]:
 
 
 import numpy as np
@@ -9,9 +9,11 @@ get_ipython().run_line_magic('matplotlib', 'notebook')
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
+from glob import glob
+import os
 
 
-# In[ ]:
+# In[4]:
 
 
 def clean_adjacency_mat(adjacency_matrix):
@@ -47,7 +49,7 @@ def clean_adjacency_mat(adjacency_matrix):
     return adjacency_matrix
 
 
-# In[ ]:
+# In[5]:
 
 
 def clean_multilevel(multilevel, adjacency_matrix):
@@ -81,7 +83,7 @@ def clean_multilevel(multilevel, adjacency_matrix):
     return multilevel
 
 
-# In[ ]:
+# In[6]:
 
 
 def subset_matrix_creator(subset_leaf_list, adjacency_matrix, multilevel):
@@ -154,7 +156,7 @@ def subset_matrix_creator(subset_leaf_list, adjacency_matrix, multilevel):
     return subset
 
 
-# In[ ]:
+# In[7]:
 
 
 def adjacency_descendants(adjacency_matrix, N, mu):
@@ -200,7 +202,7 @@ def adjacency_descendants(adjacency_matrix, N, mu):
     return Descendants
 
 
-# In[ ]:
+# In[8]:
 
 
 def adjacency_ancestors(adjacency_matrix, N, mu):
@@ -238,7 +240,7 @@ def adjacency_ancestors(adjacency_matrix, N, mu):
     return Ancestors
 
 
-# In[ ]:
+# In[9]:
 
 
 def phi(x,mu=0.0):
@@ -265,7 +267,7 @@ def phi(x,mu=0.0):
     return 1.0/np.sqrt(2.0*np.pi)*np.exp(-(x - mu)**2/2.0)
 
 
-# In[ ]:
+# In[10]:
 
 
 def P_from_Q(Q,Ancestors_and_self):
@@ -296,7 +298,7 @@ def P_from_Q(Q,Ancestors_and_self):
     return P
 
 
-# In[ ]:
+# In[11]:
 
 
 def Q_from_P(P,A):
@@ -328,7 +330,7 @@ def Q_from_P(P,A):
     return Q
 
 
-# In[ ]:
+# In[12]:
 
 
 def estimate_P(X, mu, A, Descendants_and_self, draw=False, niter=100, P0=None, names=None, clip=0.001):
@@ -460,7 +462,7 @@ def estimate_P(X, mu, A, Descendants_and_self, draw=False, niter=100, P0=None, n
     return P
 
 
-# In[ ]:
+# In[13]:
 
 
 def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
@@ -471,9 +473,10 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
     Parameters
     ----------
     filename: string
-        The user-specified filename to save the generated data; make sure to give it a name that's different 
-        from the file name you'll specify for permutation testing results so they're separate files and won't 
-        be overwritten.
+        The user-specified name for the file names to save the generated data; one file will be saved for 
+        each repeat; make sure to provide a file name that's different (i.e. say "data" rather than "results") 
+        from the file name you'll specify for permutation testing results so they're separate files and won't be 
+        overwritten; example: "data.npz" 
     
     subset: pandas.DataFrame
         The subset adjacency matrix
@@ -484,7 +487,8 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
     
     n_repeats: int
         The number of repeats. We want to generate a random dataset with the same parameters but `n_repeats` 
-        different realizations of the random variables.
+        different realizations of the random variables. n_repeats should be 1 in practice for external users, 
+        but in our case, since we simulated a lot of data, n_repeats is greater than 1.
     
     N: int
         The number of samples
@@ -502,6 +506,7 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
     '''
     
     M = subset.shape[0] # Number of total unique structures
+    basename, extension = os.path.splitext(filename)
     
     for j in range(n_repeats):
         outputs = [] # Empty list for each iteration
@@ -527,7 +532,6 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
                         Z[i][6] = 1 # Left hippocampus is affected
                     else:
                         Z[i][7] = 1 # Left amygdala is affected
-        
             
         is_leaf = np.concatenate([np.ones(number_of_leaves), np.zeros(M - number_of_leaves)]) # 1 for leaf structures, 0 for non-leaf structures
         is_leaf = np.array(is_leaf, dtype = bool) # Convert is_leaf to the boolean type
@@ -537,10 +541,11 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
         G = np.arange(N) < Naffected # All falses since all samples are unaffected
         X = Z[:, is_leaf > 0] * mu + np.random.randn(N, m)
         
-        np.savez(filename, X = X, Z = Z, G = G)
+        filename_new_this_repeat = basename + f'_repeat_{j:06d}' + extension
+        np.savez(filename_new_this_repeat, X = X, Z = Z, G = G)
 
 
-# In[ ]:
+# In[14]:
 
 
 def sorting_function(input_string, dictionary):
@@ -572,7 +577,7 @@ def sorting_function(input_string, dictionary):
     return my_list
 
 
-# In[ ]:
+# In[15]:
 
 
 def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N, mu, niter, clip, initial_prob):
@@ -583,11 +588,12 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
     Parameters
     ----------
     filename_old: string
-        The filename of the generated data
+        The pattern of the filenames of the generated data; example: "test1_data_repeat_*"
     
     filename_new: string
-        The user-specified filename for the permutation testing results (choose a different name from 
-        filename_old if you don't want generated data to get overwritten by permutation testing results)
+        The user-specified filename pattern for the permutation testing results (choose a different name from 
+        filename_old, i.e. say "results" instead of "data" if you don't want generated data to get overwritten 
+        by permutation testing results); example: "results.npz"
     
     subset: pandas.DataFrame
         The subset adjacency matrix
@@ -595,7 +601,8 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
     n_repeats: int
         The number of repeats. We generated a random dataset with the same parameters but `n_repeats` 
         different realizations of the random variables. `n_repeats` must be the same value as `n_repeats`
-        when we generated data earlier.
+        when we generated data earlier. n_repeats should be 1 in practice for external users, but in our case, 
+        since we simulated a lot of data, n_repeats is greater than 1.
     
     nperm: int
         The number of permutations for permutation testing 
@@ -632,13 +639,18 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
     Descendants = adjacency_descendants(subset, N=N, mu=mu)
     Descendants_and_self = np.logical_or(Descendants, np.eye(M))
     
-    # Load the generated data
-    data = np.load(filename_old)
-    X = data["X"]
-    Z = data["Z"]
-    G = data["G"]
+    basename, extension = os.path.splitext(filename_new)
+    filename_old = glob(filename_old)
+    filename_old = sorted(filename_old)
     
     for j in range(n_repeats):
+        
+        # Load the generated data for each repeat
+        data = np.load(filename_old[j])
+        X = data["X"]
+        Z = data["Z"]
+        G = data["G"]
+        
         outputs = [] # Empty list for each iteration
         
         ### PARAMETER ESTIMATION ###
@@ -680,6 +692,7 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
             posterior_list.append(P_subset[inds[i]])
         
         ### SORT THE POSTERIOR VALUES ###
+        
         # Use the subset adjacency matrix to create a dictionary
         columns = np.array(subset.columns)
         dictionary = dict(enumerate(columns.flatten(), 1))
@@ -688,10 +701,11 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         
         ### SAVE DATA ### 
         
-        np.savez(filename_new, pval = pval_list, names = names_list, posterior = posterior_list, strings = outputs)
+        filename_new_this_repeat = basename + f'_repeat_{j:06d}' + extension
+        np.savez(filename_new_this_repeat, pval = pval_list, names = names_list, posterior = posterior_list, strings = outputs)
 
 
-# In[ ]:
+# In[16]:
 
 
 def false_positive_rate(subset, file_names, n_repeats):
@@ -704,13 +718,15 @@ def false_positive_rate(subset, file_names, n_repeats):
     subset: pandas.DataFrame
         The subset adjacency matrix
     
-    file_names: list
-        A list containing the file names of the permutation testing results to be used in the calculation
+    file_names: string
+        A string containing the file name pattern of the permutation testing results to be used in the 
+        calculation
     
     n_repeats: int
         The number of repeats. We generated a random dataset with the same parameters but `n_repeats` 
         different realizations of the random variables. `n_repeats` must be the same value for each file in the 
-        file_name list.
+        file_name list. n_repeats should be 1 in practice for external users, but in our case, since we 
+        simulated a lot of data, n_repeats is greater than 1.
     
     Note: we can only calculate false positive rates for cases 1 and 2; make sure the input files in the 
     file_name list were all created for the same case (either case 1 or case 2).
@@ -721,6 +737,9 @@ def false_positive_rate(subset, file_names, n_repeats):
         The false positive rate from permutation testing
         
     '''
+    
+    file_names = glob(file_names)
+    file_names = sorted(file_names)
     
     # Use the subset adjacency matrix to create a dictionary
     columns = np.array(subset.columns)
@@ -749,7 +768,7 @@ def false_positive_rate(subset, file_names, n_repeats):
     return (count / n_repeats)
 
 
-# In[ ]:
+# In[17]:
 
 
 def false_negative_rate(subset, file_names, case, n_repeats):
@@ -762,8 +781,9 @@ def false_negative_rate(subset, file_names, case, n_repeats):
     subset: pandas.DataFrame
         The subset adjacency matrix
     
-    file_names: list
-        A list containing the file names of the permutation testing results to be used in the calculation
+    file_names: string
+        A string containing the file name pattern of the permutation testing results to be used in the 
+        calculation
     
     case: int
         The case that was used to generate the data; all files in the file_names list must correspond to the 
@@ -772,7 +792,8 @@ def false_negative_rate(subset, file_names, case, n_repeats):
     n_repeats: int
         The number of repeats. We generated a random dataset with the same parameters but `n_repeats` 
         different realizations of the random variables. `n_repeats` must be the same value for each file in the 
-        file_name list.
+        file_name list. n_repeats should be 1 in practice for external users, but in our case, since we 
+        simulated a lot of data, n_repeats is greater than 1.
         
     Note: we can only calculate false negative rates for cases 2, 3, and 4; make sure the input files in the 
     file_name list were all created for the same case (either case 2 or case 3 or case 4).
@@ -783,6 +804,9 @@ def false_negative_rate(subset, file_names, case, n_repeats):
         Data frame whose columns are "Structure" and "False negative rate" with one row per structure
 
     '''
+    
+    file_names = glob(file_names)
+    file_names = sorted(file_names)
     
     # Use the subset adjacency matrix to create a dictionary
     columns = np.array(subset.columns)
@@ -831,4 +855,10 @@ def false_negative_rate(subset, file_names, case, n_repeats):
         output = output[~output["Structure"].str.startswith("Amyg")] # Omit the rows corresponding to amygdala structures
     
     return output                 
+
+
+# In[ ]:
+
+
+
 
