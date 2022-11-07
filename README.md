@@ -54,3 +54,13 @@ This .py file was converted from the functions_py_file.ipynb Jupyter notebook so
 
 #### 5.4 Testing functions.ipynb
 This Jupyter notebook contains a fake test and a real test of the functions from the .py file to make sure everything works properly.
+
+## 6. Comparing to stepdown paper
+
+Stepdown paper: "Exact and Approximate Stepdown Methods for Multiple Hypothesis Testing" by Joseph P Romano & Michael Wolf
+
+#### 6.1 Cs and Ds test.ipynb
+This Jupyter notebook contains code that compares the calculation of Ds (critical values computed by our method) vs. the calculation of Cs (critical values computed by the stepdown paper). 
+
+#### 6.2 11_6_22 Cs vs. Ds comparison.pdf
+This PDF contains a table for each test case, where the computed Cs and Ds are compared and analyzed to see for which structures are Ds greater than Cs and vice versa.
