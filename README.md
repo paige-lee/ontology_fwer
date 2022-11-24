@@ -62,5 +62,5 @@ Stepdown paper: "Exact and Approximate Stepdown Methods for Multiple Hypothesis 
 #### 6.1 Cs and Ds test.ipynb
 This Jupyter notebook contains code that compares the calculation of Ds (critical values computed by our method) vs. the calculation of Cs (critical values computed by the stepdown paper). 
 
-#### 6.2 11_6_22 Cs vs. Ds comparison.pdf
+#### 6.2 11_23_22 Cs vs. Ds comparison.pdf
 This PDF contains a table for each test case, where the computed Cs and Ds are compared and analyzed to see for which structures are Ds greater than Cs and vice versa.
