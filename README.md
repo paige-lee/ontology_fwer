@@ -64,3 +64,8 @@ This Jupyter notebook contains code that compares the calculation of Ds (critica
 
 #### 6.2 11_23_22 Cs vs. Ds comparison.pdf
 This PDF contains a table for each test case, where the computed Cs and Ds are compared and analyzed to see for which structures are Ds greater than Cs and vice versa.
+
+## 7. Code for real data
+
+#### 7.1 Calculating mu and sigma for real data.ipynb
+This Jupyter notebook contains code that calculates the MLE estimates of the mean and variance for real data.
