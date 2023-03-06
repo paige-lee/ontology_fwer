@@ -335,7 +335,7 @@ def Q_from_P(P,A):
 # In[ ]:
 
 
-def calc_mu_sigma_from_xp(X, P_ij, M):
+def calc_mu_sigma_from_xp(X, P_ij):
     '''Function for calculating mu and sigma^2 from X and P_ij
     
     This function calculates the MLE estimates of mu0, mu1, and sigma^2 (common variance)
@@ -348,18 +348,15 @@ def calc_mu_sigma_from_xp(X, P_ij, M):
     P_ij: numpy.array
         The marginal probabilities that structures are affected for leaf structures only
     
-    M: numpy.array
-        The total number of structures in the subset of the adjacency matrix 
-    
     Returns
     ----------
     numpy.array
         Returns three arrays, corresponding to the MLE estimates of mu0, mu1, and sigma^2 respectively
     
     '''
-    mu0i = sum(X * (1 - P_ij)) / sum(1 - P_ij)
-    mu1i = sum(P_ij * X) / sum(P_ij)
-    vi = (sum(P_ij * (X - mu1i)**2) + sum((1 - P_ij) * (X - mu0i)**2)) / M
+    mu0i = np.sum(X * (1 - P_ij), axis = 0) / np.sum(1 - P_ij, axis = 0)
+    mu1i = np.sum(P_ij * X, axis = 0) / np.sum(P_ij, axis = 0)
+    vi = (np.sum(P_ij * (X - mu1i)**2, axis = 0) + np.sum((1 - P_ij) * (X - mu0i)**2, axis = 0)) / X.shape[0]
     return mu0i, mu1i, vi
 
 
@@ -460,7 +457,7 @@ def estimate_P(X, A, Descendants_and_self, draw=False, niter=100, P0=None, names
         
         # now my adjust ment requres products of all descendants
         #adjustment = np.ones(M)
-        log_adjustment = np.ones(M)
+        log_adjustment = np.zeros(M)
         for i in range(M):
             #adjustment[i] = np.prod(adjustment_single[Descendants_and_self[i,:]])
             log_adjustment[i] = np.sum(log_adjustment_single[Descendants_and_self[i,:]])
@@ -476,7 +473,7 @@ def estimate_P(X, A, Descendants_and_self, draw=False, niter=100, P0=None, names
         posterior = np.expm1(log_posterior)
         
         # Calculate the MLE estimates of mu0, mu1, and sigma2, and update their values
-        mle_estimates = calc_mu_sigma_from_xp(X, posterior, M) # Calculate MLE estimates of mu0, mu1, sigma^2
+        mle_estimates = calc_mu_sigma_from_xp(X, posterior[:, is_leaf]) # Calculate MLE estimates of mu0, mu1, sigma^2
         mu0 = mle_estimates[0]
         mu1 = mle_estimates[1]
         sigma2 = mle_estimates[2]
@@ -699,7 +696,7 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         Q = Q_from_P(P_subset, S)
 
         P0 = np.ones(M) * initial_prob
-        P_subset = estimate_P(X[G], S, Descendants_and_self, draw=0, niter=niter, P0=P0, names=names_subset, clip=clip)
+        P_subset, mu0_subset, mu1_subset, sigma2_subset = estimate_P(X[G], S, Descendants_and_self, draw=0, niter=niter, P0=P0, names=names_subset, clip=clip)
         # Set draw = 0 to prevent drawing the graphs
         
         ### GENERATING PERMUTED DATA ###
@@ -707,7 +704,7 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         Ps = []
         for n in range(nperm):
             Xp = X[np.random.permutation(N)[G]]
-            P_ = estimate_P(Xp, S, Descendants_and_self,draw=0,niter=niter,P0=P0)
+            P_, mu0_, mu1_, sigma2_ = estimate_P(Xp, S, Descendants_and_self,draw=0,niter=niter,P0=P0)
             Ps.append(P_)
 
         Ps_sort = np.array([np.sort(Pi)[::-1] for Pi in Ps])
