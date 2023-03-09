@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# **The only function definitions that are modified are `phi()` and `estimate_P()`**
-
 # In[ ]:
 
 
@@ -335,7 +333,7 @@ def Q_from_P(P,A):
 # In[ ]:
 
 
-def calc_mu_sigma_from_xp(X, P_ij):
+def calc_mu_sigma_from_xp(X, P_ij, G):
     '''Function for calculating mu and sigma^2 from X and P_ij
     
     This function calculates the MLE estimates of mu0, mu1, and sigma^2 (common variance)
@@ -348,12 +346,18 @@ def calc_mu_sigma_from_xp(X, P_ij):
     P_ij: numpy.array
         The marginal probabilities that structures are affected for leaf structures only
     
+    G: boolean vector
+        The grouping variable that tells us if a patient is affected or not
+    
     Returns
     ----------
     numpy.array
         Returns three arrays, corresponding to the MLE estimates of mu0, mu1, and sigma^2 respectively
     
     '''
+    
+    P_ij[:, 0] = np.where(G == False, 0, 1)
+    P_ij[:, 1] = np.where(G == False, 0, 1)
     mu0i = np.sum(X * (1 - P_ij), axis = 0) / np.sum(1 - P_ij, axis = 0)
     mu1i = np.sum(P_ij * X, axis = 0) / np.sum(P_ij, axis = 0)
     vi = (np.sum(P_ij * (X - mu1i)**2, axis = 0) + np.sum((1 - P_ij) * (X - mu0i)**2, axis = 0)) / X.shape[0]
@@ -363,7 +367,7 @@ def calc_mu_sigma_from_xp(X, P_ij):
 # In[ ]:
 
 
-def estimate_P(X, A, Descendants_and_self, draw=False, niter=100, P0=None, names=None, clip=0.001, mu0 = 0.0, mu1 = 3.0, sigma2 = 1.0):
+def estimate_P(X, A, G, Descendants_and_self, draw=False, niter=100, P0=None, names=None, clip=0.001, mu0 = 0.0, mu1 = 3.0, sigma2 = 1.0):
     ''' Function for estimating P
     
     Apply an EM algorithm to estimate marginal probabiltiies that each structure is affected given a dataset.
@@ -473,7 +477,7 @@ def estimate_P(X, A, Descendants_and_self, draw=False, niter=100, P0=None, names
         posterior = np.expm1(log_posterior)
         
         # Calculate the MLE estimates of mu0, mu1, and sigma2, and update their values
-        mle_estimates = calc_mu_sigma_from_xp(X, posterior[:, is_leaf]) # Calculate MLE estimates of mu0, mu1, sigma^2
+        mle_estimates = calc_mu_sigma_from_xp(X, posterior[:, is_leaf], G) # Calculate MLE estimates of mu0, mu1, sigma^2
         mu0 = mle_estimates[0]
         mu1 = mle_estimates[1]
         sigma2 = mle_estimates[2]
@@ -575,7 +579,7 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
         is_leaf = is_leaf[::-1] # Data specific
         m = np.sum(is_leaf) # Number of leaf structures (m = 2)
             
-        G = np.arange(N) < Naffected # All falses since all samples are unaffected
+        G = np.arange(N) < Naffected 
         X = Z[:, is_leaf > 0] * mu + np.random.randn(N, m)
         
         filename_new_this_repeat = basename + f'_repeat_{j:06d}' + extension
@@ -696,15 +700,15 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         Q = Q_from_P(P_subset, S)
 
         P0 = np.ones(M) * initial_prob
-        P_subset, mu0_subset, mu1_subset, sigma2_subset = estimate_P(X[G], S, Descendants_and_self, draw=0, niter=niter, P0=P0, names=names_subset, clip=clip)
+        P_subset, mu0_subset, mu1_subset, sigma2_subset = estimate_P(X, S, G, Descendants_and_self, draw=0, niter=niter, P0=P0, names=names_subset, clip=clip)
         # Set draw = 0 to prevent drawing the graphs
         
         ### GENERATING PERMUTED DATA ###
     
         Ps = []
         for n in range(nperm):
-            Xp = X[np.random.permutation(N)[G]]
-            P_, mu0_, mu1_, sigma2_ = estimate_P(Xp, S, Descendants_and_self,draw=0,niter=niter,P0=P0)
+            Xp = X[np.random.permutation(N)]
+            P_, mu0_, mu1_, sigma2_ = estimate_P(Xp, S, G, Descendants_and_self,draw=0,niter=niter,P0=P0)
             Ps.append(P_)
 
         Ps_sort = np.array([np.sort(Pi)[::-1] for Pi in Ps])
