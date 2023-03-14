@@ -69,3 +69,12 @@ This PDF contains a table for each test case, where the computed Cs and Ds are c
 
 #### 7.1 Calculating mu and sigma for real data.ipynb
 This Jupyter notebook contains code that calculates the MLE estimates of the mean and variance for real data.
+
+#### 7.2 new_functions_py_file.ipynb
+This Jupyter notebook contains code that modifies the original functions from Function definitions.ipynb for working with real data.
+
+#### 7.3 new_functions_py_file.py
+This .py file is the .py version of new_functions_py_file.ipynb.
+
+#### 7.4 Testing new functions.ipynb
+This Jupyter notebook contains code that tests the modified functions defined in the new_functions_py_file.ipynb notebook to make sure they work
