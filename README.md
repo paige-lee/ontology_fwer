@@ -77,4 +77,7 @@ This Jupyter notebook contains code that modifies the original functions from Fu
 This .py file is the .py version of new_functions_py_file.ipynb.
 
 #### 7.4 Testing new functions.ipynb
-This Jupyter notebook contains code that tests the modified functions defined in the new_functions_py_file.ipynb notebook to make sure they work
+This Jupyter notebook contains code that tests the modified functions defined in the new_functions_py_file.ipynb notebook to make sure they work.
+
+#### 7.5 4 cases and binary classification categories.pdf
+This PDF contains a summary of the four possible binary classification categories (TP, FP, TN, FN) for each of the four cases.
