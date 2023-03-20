@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import numpy as np
@@ -744,6 +744,147 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         
         filename_new_this_repeat = basename + f'_repeat_{j:06d}' + extension
         np.savez(filename_new_this_repeat, pval = pval_list, names = names_list, posterior = posterior_list, strings = outputs)
+        
+        ### OUTPUTS ###
+        
+        return {"p-values": pval_list, "names": names_list, "posterior": posterior_list, "strings": outputs,
+                "P_subset": P_subset, "mu0_subset": mu0_subset, "mu1_subset": mu1_subset, "sigma2_subset": sigma2_subset
+               }
+
+
+# In[ ]:
+
+
+def error_types(subset, file_names, n_repeats, case):
+    ''' Function that returns the binary category for each repeat
+    
+    This function returns the binary category (TP, FP, TN, FN) for each repeat after permutation testing
+    
+    Parameters
+    ----------
+    subset: pandas.DataFrame
+        The subset adjacency matrix
+    
+    file_names: string
+        A string containing the file name pattern of the permutation testing results to be used in the 
+        calculation
+        
+    n_repeats: int
+        The number of repeats. We generated a random dataset with the same parameters but `n_repeats` 
+        different realizations of the random variables. `n_repeats` must be the same value for each file in the 
+        file_name list. n_repeats should be 1 in practice for external users, but in our case, since we 
+        simulated a lot of data, n_repeats is greater than 1.
+        
+    case: int
+        The case number (1, 2, 3, or 4)
+    
+    Returns
+    ----------
+    Four binary matrices (number of repeats by number of structures), one for each binary category
+    
+    Note: in the cases where a certain binary category isn't possible (ex. we can't calculate FNs for case 1), 
+    then the binary category matrix for that case/category combination contains all 0s
+    
+    '''
+    
+    # Load and sort the file names (each file is one repeat)
+    file_names = glob(file_names)
+    file_names = sorted(file_names)
+    
+    # Use the subset adjacency matrix to create a dictionary
+    columns = np.array(subset.columns)
+    dictionary = dict(enumerate(columns.flatten(), 1))
+    dictionary = dict((value, key) for key, value in dictionary.items()) # Swap the keys and values
+    
+    # Initialize the outputs
+    tp, fp, tn, fn = np.zeros((n_repeats, subset.shape[0]))
+    
+    # Case 1
+    if (case == 1):
+
+        for i in range(0, len(file_names)): # For each repeat (rows)...
+            reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
+            file = np.load(file_names[i])
+            file = file["strings"] # Values corresponding to the key
+            file = sorting_function(file, dictionary)
+        
+            for j in range(0, len(columns)): # For each structure (columns)...
+                p = file[j].find("p=") # Index of "p" in the string
+                pval = float(file[j][p::][2::]) # Extract the p-value
+                if pval < 0.05: # If the p-value is < 0.05...
+                    reject_p[j] = 1
+                else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
+                    break
+                
+            if any(reject_p < 0): # If any structure is rejected...
+                fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
+                
+            if any(reject_p > 0): # If any structure is not rejected...
+                tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
+        
+        # Leave TP and FN matrices with all 0s since we can't calculate TPs or FNs for case 1
+    
+    # Case 2
+    if (case == 2):
+        
+        for i in range(0, len(file_names)): # For each repeat (rows)...
+            reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
+            file = np.load(file_names[i])
+            file = file["strings"] # Values corresponding to the key
+            file = sorting_function(file, dictionary)
+        
+            for j in range(0, len(columns)): # For each structure (columns)...
+                p = file[j].find("p=") # Index of "p" in the string
+                pval = float(file[j][p::][2::]) # Extract the p-value
+                if pval < 0.05: # If the p-value is < 0.05...
+                    reject_p[j] = 1
+                else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
+                    break
+
+                for r, s in zip(reject_p, file):
+                    if ("Amyg" in columns[k]) and ("Amyg" in s and r): # If the structure is amygdala, and amygdala is rejected...
+                        fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
+                    if ("Hippo" in columns[k]) and ("Hippo" in s and r): # If the structure is hippocampus, and hippocampus is rejected...
+                        tp[i, j] = 1 # This repeat/structure entry is a 1 for true positives
+                    if ("Amyg" in columns[k]) and ("Amyg" not in s and r): # If the structure is amygdala, and amygdala is not rejected...
+                        tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
+                    if ("Hippo" in columns[k]) and ("Hippo" not in s and r): # If the structure is hippocampus, and hippocampus is not rejected...
+                        fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
+                    
+    
+    # Case 3
+    if (case == 3):
+        
+        for i in range(0, len(file_names)): # For each repeat (rows)...
+            reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
+            file = np.load(file_names[i])
+            file = file["strings"] # Values corresponding to the key
+            file = sorting_function(file, dictionary)
+        
+            for j in range(0, len(columns)): # For each structure (columns)...
+                p = file[j].find("p=") # Index of "p" in the string
+                pval = float(file[j][p::][2::]) # Extract the p-value
+                if pval < 0.05: # If the p-value is < 0.05...
+                    reject_p[j] = 1
+                else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
+                    break
+            
+            if any(reject_p < 0): # If any structure is rejected...
+                tp[i, j] = 1 # This repeat/structure entry is a 1 for true positives
+                
+            if any(reject_p > 0): # If any structure is not rejected...
+                fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
+    
+    
+        # Leave FP and TN matrices with all 0s since we can't calculate FPs or TNs for case 3
+        
+    # Case 4
+    if (case == 4):
+        #
+    
+    
+    return {"True positives": tp, "False positives": fp, "True negatives": tn, "False negatives": fn} 
+    
 
 
 # In[ ]:
