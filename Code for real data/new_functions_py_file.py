@@ -740,16 +740,16 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
         dictionary = dict((value, key) for key, value in dictionary.items()) # Swap the keys and values
         outputs = sorting_function(outputs, dictionary)
         
-        ### SAVE DATA ### 
+        ### SAVE DATA FOR EVERY REPEAT ### 
         
         filename_new_this_repeat = basename + f'_repeat_{j:06d}' + extension
         np.savez(filename_new_this_repeat, pval = pval_list, names = names_list, posterior = posterior_list, strings = outputs)
         
-        ### OUTPUTS ###
+    ### OUTPUTS (outside of repeat loop) ###
         
-        return {"p-values": pval_list, "names": names_list, "posterior": posterior_list, "strings": outputs,
-                "P_subset": P_subset, "mu0_subset": mu0_subset, "mu1_subset": mu1_subset, "sigma2_subset": sigma2_subset
-               }
+    return {"p-values": pval_list, "names": names_list, "posterior": posterior_list, "strings": outputs,
+            "P_subset": P_subset, "mu0_subset": mu0_subset, "mu1_subset": mu1_subset, "sigma2_subset": sigma2_subset
+            }
 
 
 # In[ ]:
@@ -797,10 +797,13 @@ def error_types(subset, file_names, n_repeats, case):
     dictionary = dict((value, key) for key, value in dictionary.items()) # Swap the keys and values
     
     # Initialize the outputs
-    tp, fp, tn, fn = np.zeros((n_repeats, subset.shape[0]))
+    tp = np.zeros((n_repeats, subset.shape[0]))
+    fp = np.zeros((n_repeats, subset.shape[0]))
+    tn = np.zeros((n_repeats, subset.shape[0]))
+    fn = np.zeros((n_repeats, subset.shape[0]))
     
     # Case 1
-    if (case == 1):
+    if ((case == 1) | (case == 4)):
 
         for i in range(0, len(file_names)): # For each repeat (rows)...
             reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
@@ -815,20 +818,20 @@ def error_types(subset, file_names, n_repeats, case):
                     reject_p[j] = 1
                 else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
                     break
+            
+            for j in range(0, len(columns)): # For each structure (columns)...
+                if (reject_p[j]): # If we reject the jth structure...
+                    fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
+                if (reject_p[j] == False): # If we don't reject the jth structure...
+                    tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
                 
-            if any(reject_p < 0): # If any structure is rejected...
-                fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
-                
-            if any(reject_p > 0): # If any structure is not rejected...
-                tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
-        
-        # Leave TP and FN matrices with all 0s since we can't calculate TPs or FNs for case 1
+        # Leave TP and FN matrices with all 0s since we don't need to calculate TPs or FNs for case 1
     
     # Case 2
     if (case == 2):
         
         for i in range(0, len(file_names)): # For each repeat (rows)...
-            reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
+            reject_p = np.zeros(len(columns)) 
             file = np.load(file_names[i])
             file = file["strings"] # Values corresponding to the key
             file = sorting_function(file, dictionary)
@@ -840,15 +843,16 @@ def error_types(subset, file_names, n_repeats, case):
                     reject_p[j] = 1
                 else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
                     break
-
+                    
+            for j in range(0, len(columns)): # For each structure (columns)...
                 for r, s in zip(reject_p, file):
-                    if ("Amyg" in columns[k]) and ("Amyg" in s and r): # If the structure is amygdala, and amygdala is rejected...
+                    if ("Amyg" in columns[j]) and ("Amyg" in s and r): # If the structure is amygdala, and amygdala is rejected...
                         fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
-                    if ("Hippo" in columns[k]) and ("Hippo" in s and r): # If the structure is hippocampus, and hippocampus is rejected...
+                    if ("Hippo" in columns[j]) and ("Hippo" in s and r): # If the structure is hippocampus, and hippocampus is rejected...
                         tp[i, j] = 1 # This repeat/structure entry is a 1 for true positives
-                    if ("Amyg" in columns[k]) and ("Amyg" not in s and r): # If the structure is amygdala, and amygdala is not rejected...
+                    if ("Amyg" in columns[j]) and ("Amyg" not in s and r): # If the structure is amygdala, and amygdala is not rejected...
                         tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
-                    if ("Hippo" in columns[k]) and ("Hippo" not in s and r): # If the structure is hippocampus, and hippocampus is not rejected...
+                    if ("Hippo" in columns[j]) and ("Hippo" not in s and r): # If the structure is hippocampus, and hippocampus is not rejected...
                         fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
                     
     
@@ -869,22 +873,15 @@ def error_types(subset, file_names, n_repeats, case):
                 else: # The test statistic is the probabilities, which were sorted, so stop after the first structure we fail to reject
                     break
             
-            if any(reject_p < 0): # If any structure is rejected...
-                tp[i, j] = 1 # This repeat/structure entry is a 1 for true positives
-                
-            if any(reject_p > 0): # If any structure is not rejected...
-                fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
+            for j in range(0, len(columns)): # For each structure (columns)...
+                if (reject_p[j]): # If we reject the jth structure...
+                    tp[i, j] = 1 # This repeat/structure entry is a 1 for true positives
+                if (reject_p[j] == False): # If we don't reject the jth structure...
+                    fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
     
-    
-        # Leave FP and TN matrices with all 0s since we can't calculate FPs or TNs for case 3
-        
-    # Case 4
-    if (case == 4):
-        #
-    
+        # Leave FP and TN matrices with all 0s since we don't need to calculate FPs or TNs for case 3
     
     return {"True positives": tp, "False positives": fp, "True negatives": tn, "False negatives": fn} 
-    
 
 
 # In[ ]:
