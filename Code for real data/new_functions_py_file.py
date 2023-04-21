@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[4]:
 
 
 import numpy as np
@@ -13,7 +13,7 @@ from glob import glob
 import os
 
 
-# In[ ]:
+# In[5]:
 
 
 def clean_adjacency_mat(adjacency_matrix):
@@ -49,7 +49,7 @@ def clean_adjacency_mat(adjacency_matrix):
     return adjacency_matrix
 
 
-# In[ ]:
+# In[6]:
 
 
 def clean_multilevel(multilevel, adjacency_matrix):
@@ -83,7 +83,7 @@ def clean_multilevel(multilevel, adjacency_matrix):
     return multilevel
 
 
-# In[ ]:
+# In[7]:
 
 
 def subset_matrix_creator(subset_leaf_list, adjacency_matrix, multilevel):
@@ -156,7 +156,7 @@ def subset_matrix_creator(subset_leaf_list, adjacency_matrix, multilevel):
     return subset
 
 
-# In[ ]:
+# In[8]:
 
 
 def adjacency_descendants(adjacency_matrix, N, mu):
@@ -202,7 +202,7 @@ def adjacency_descendants(adjacency_matrix, N, mu):
     return Descendants
 
 
-# In[ ]:
+# In[9]:
 
 
 def adjacency_ancestors(adjacency_matrix, N, mu):
@@ -240,7 +240,7 @@ def adjacency_ancestors(adjacency_matrix, N, mu):
     return Ancestors
 
 
-# In[ ]:
+# In[10]:
 
 
 def phi(x, mu = 0.0, sigma2 = 1.0):
@@ -267,7 +267,7 @@ def phi(x, mu = 0.0, sigma2 = 1.0):
     return 1.0 / np.sqrt(2.0 * np.pi * sigma2) * np.exp(-(x - mu)**2 / (2.0 * sigma2))
 
 
-# In[ ]:
+# In[11]:
 
 
 def P_from_Q(Q,Ancestors_and_self):
@@ -298,7 +298,7 @@ def P_from_Q(Q,Ancestors_and_self):
     return P
 
 
-# In[ ]:
+# In[12]:
 
 
 def Q_from_P(P,A):
@@ -330,7 +330,7 @@ def Q_from_P(P,A):
     return Q
 
 
-# In[ ]:
+# In[13]:
 
 
 def calc_mu_sigma_from_xp(X, P_ij, G):
@@ -364,7 +364,7 @@ def calc_mu_sigma_from_xp(X, P_ij, G):
     return mu0i, mu1i, vi
 
 
-# In[ ]:
+# In[14]:
 
 
 def estimate_P(X, A, G, Descendants_and_self, draw=False, niter=100, P0=None, names=None, clip=0.001, mu0 = 0.0, mu1 = 3.0, sigma2 = 1.0):
@@ -503,7 +503,7 @@ def estimate_P(X, A, G, Descendants_and_self, draw=False, niter=100, P0=None, na
     return P, mu0, mu1, sigma2
 
 
-# In[ ]:
+# In[15]:
 
 
 def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
@@ -586,7 +586,7 @@ def generate_simulated_data(filename, subset, case, n_repeats, N, mu):
         np.savez(filename_new_this_repeat, X = X, Z = Z, G = G)
 
 
-# In[ ]:
+# In[16]:
 
 
 def sorting_function(input_string, dictionary):
@@ -618,7 +618,7 @@ def sorting_function(input_string, dictionary):
     return my_list
 
 
-# In[ ]:
+# In[17]:
 
 
 def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N, mu, mu0, mu1, sigma2, niter, clip, initial_prob):
@@ -752,7 +752,7 @@ def permutation_testing(filename_old, filename_new, subset, n_repeats, nperm, N,
             }
 
 
-# In[ ]:
+# In[18]:
 
 
 def error_types(subset, file_names, n_repeats, case):
@@ -803,7 +803,7 @@ def error_types(subset, file_names, n_repeats, case):
     fn = np.zeros((n_repeats, subset.shape[0]))
     
     # Case 1
-    if ((case == 1) | (case == 4)):
+    if (case == 1):
 
         for i in range(0, len(file_names)): # For each repeat (rows)...
             reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
@@ -857,7 +857,7 @@ def error_types(subset, file_names, n_repeats, case):
                     
     
     # Case 3
-    if (case == 3):
+    if ((case == 3) | (case == 4)):
         
         for i in range(0, len(file_names)): # For each repeat (rows)...
             reject_p = np.zeros(len(columns)) # For each repeat, assume no structures are affected (null hypothesis)
@@ -884,7 +884,7 @@ def error_types(subset, file_names, n_repeats, case):
     return {"True positives": tp, "False positives": fp, "True negatives": tn, "False negatives": fn} 
 
 
-# In[ ]:
+# In[19]:
 
 
 def false_positive_rate(subset, file_names, n_repeats):
@@ -947,7 +947,7 @@ def false_positive_rate(subset, file_names, n_repeats):
     return (count / n_repeats)
 
 
-# In[ ]:
+# In[20]:
 
 
 def false_negative_rate(subset, file_names, case, n_repeats):
@@ -1034,6 +1034,35 @@ def false_negative_rate(subset, file_names, case, n_repeats):
         output = output[~output["Structure"].str.startswith("Amyg")] # Omit the rows corresponding to amygdala structures
     
     return output                 
+
+
+# In[21]:
+
+
+def error_rates(subset, error_types_dictionary):
+    names_subset = subset.columns # List of the 8 structures' names
+    tp = list(error_types_dictionary.values())[0] # TP matrix for each structure/repeat combination
+    fp = list(error_types_dictionary.values())[1] # FP matrix for each structure/repeat combination
+    tn = list(error_types_dictionary.values())[2] # TN matrix for each structure/repeat combination
+    fn = list(error_types_dictionary.values())[3] # FN matrix for each structure/repeat combination
+    
+    tp_count = tp.sum(axis = 0) # Take the column sums of the TP matrix -> find the number of TPs for each structure
+    fp_count = fp.sum(axis = 0) # Take the column sums of the FP matrix -> find the number of FPs for each structure
+    tn_count = tn.sum(axis = 0) # Take the column sums of the TN matrix -> find the number of TNs for each structure
+    fn_count = fn.sum(axis = 0) # Take the column sums of the FN matrix -> find the number of FNs for each structure
+    
+    tp_rates = tp_count / len(tp)
+    fp_rates = fp_count / len(fp)
+    tn_rates = tn_count / len(tn)
+    fn_rates = fn_count / len(fn)
+    
+    return {"Structure names": names_subset, "TP rates": tp_rates, "FP rates": fp_rates, "TN rates": tn_rates, "FN rates": fn_rates} 
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
