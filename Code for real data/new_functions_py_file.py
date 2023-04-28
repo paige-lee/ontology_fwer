@@ -1051,10 +1051,10 @@ def error_rates(subset, error_types_dictionary):
     tn_count = tn.sum(axis = 0) # Take the column sums of the TN matrix -> find the number of TNs for each structure
     fn_count = fn.sum(axis = 0) # Take the column sums of the FN matrix -> find the number of FNs for each structure
     
-    tp_rates = tp_count / len(tp)
-    fp_rates = fp_count / len(fp)
-    tn_rates = tn_count / len(tn)
-    fn_rates = fn_count / len(fn)
+    tp_rates = tp_count / (tp_count + fn_count)
+    fp_rates = fp_count / (fp_count + tn_count)
+    tn_rates = tn_count / (tn_count + fp_count)
+    fn_rates = fn_count / (fn_count + tp_count)
     
     return {"Structure names": names_subset, "TP rates": tp_rates, "FP rates": fp_rates, "TN rates": tn_rates, "FN rates": fn_rates} 
 
