@@ -846,6 +846,8 @@ def error_types(subset, file_names, n_repeats, case):
                     
             for j in range(0, len(columns)): # For each structure (columns)...
                 for r, s in zip(reject_p, file):
+                    
+                    # Children structures
                     if ("Amyg" in columns[j]) and ("Amyg" in s and r): # If the structure is amygdala, and amygdala is rejected...
                         fp[i, j] = 1 # This repeat/structure entry is a 1 for false positives
                     if ("Hippo" in columns[j]) and ("Hippo" in s and r): # If the structure is hippocampus, and hippocampus is rejected...
@@ -854,7 +856,27 @@ def error_types(subset, file_names, n_repeats, case):
                         tn[i, j] = 1 # This repeat/structure entry is a 1 for true negatives
                     if ("Hippo" in columns[j]) and ("Hippo" not in s and r): # If the structure is hippocampus, and hippocampus is not rejected...
                         fn[i, j] = 1 # This repeat/structure entry is a 1 for false negatives
+                 
+                    # Ancestor structures
+                    if ("Limbic" in columns[j]) and ("Limbic" in s and r):
+                        tp[i, j] = 1
+                    if ("Limbic" in columns[j]) and ("Limbic" not in s and r):
+                        fn[i, j] = 1
                     
+                    if ("CerebralCortex" in columns[j]) and ("CerebralCortex" in s and r):
+                        tp[i, j] = 1
+                    if ("CerebralCortex" in columns[j]) and ("CerebralCortex" not in s and r):
+                        fn[i, j] = 1
+                    
+                    if ("Telencephalon" in columns[j]) and ("Telencephalon" in s and r):
+                        tp[i, j] = 1
+                    if ("Telencephalon" in columns[j]) and ("Telencephalon" not in s and r):
+                        fn[i, j] = 1
+                    
+                    if ("Everything" in columns[j]) and ("Everything" in s and r):
+                        tp[i, j] = 1
+                    if ("Everything" in columns[j]) and ("Everything" not in s and r):
+                        fn[i, j] = 1
     
     # Case 3
     if ((case == 3) | (case == 4)):
